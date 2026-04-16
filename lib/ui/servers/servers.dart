@@ -2,16 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Flutter
 import 'package:flutter/material.dart';
-
-// Internal
+import 'package:flutter/services.dart';
 import 'package:artplay_launcher/bloc/server/server_bloc.dart';
 import 'package:artplay_launcher/state/server_state_event.dart';
 import 'package:artplay_launcher/ui/colors.dart';
 import 'package:artplay_launcher/ui/widgets/server_tile.dart';
-
-// Packages
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 
@@ -23,28 +19,48 @@ class Servers extends StatefulWidget {
 }
 
 class _ServersState extends State<Servers> {
-  final log = Logger('Servers');
+  final Logger log = Logger('Servers');
+  static const MethodChannel platform = MethodChannel('launcher');
   late ServerBloc _serverBloc;
 
   @override
   void initState() {
     super.initState();
-
     log.fine('initState() - fetch servers');
-
     _serverBloc = Provider.of<ServerBloc>(context, listen: false);
     _serverBloc.loadServers(LoadServersEvent());
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   void _handleRefresh() {
     log.fine('_handleRefresh');
-
     _serverBloc.loadServers(RefreshServersEvent());
+  }
+
+  Future<void> _connectServer(String address, String? hostname) async {
+    try {
+      final parts = address.split(':');
+      final ip = parts[0];
+      final port = int.parse(parts[1]);
+
+      await platform.invokeMethod('connectServer', {
+        'ip': ip,
+        'port': port,
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Conectando em ${hostname ?? address} ($address)'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao conectar: $e'),
+        ),
+      );
+    }
   }
 
   @override
@@ -59,7 +75,6 @@ class _ServersState extends State<Servers> {
                 color: AppColors.primary,
                 backgroundColor: AppColors.background,
                 onRefresh: () async {
-                  /// Trigger the refresh action (e.g, fetch server info again)
                   _handleRefresh();
                 },
                 child: StreamBuilder<ServerState>(
@@ -69,11 +84,12 @@ class _ServersState extends State<Servers> {
                     final state = snapshot.data;
 
                     if (state is ServerInitial) {
-                      /// TODO:
+                      return const SizedBox.shrink();
                     } else if (state is ServerLoadInProgress) {
                       return const Center(
-                        child:
-                            CircularProgressIndicator(color: AppColors.primary),
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
                       );
                     } else if (state is ServerLoadFailure) {
                       return Center(
@@ -81,10 +97,7 @@ class _ServersState extends State<Servers> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             TextButton(
-                              onPressed: () {
-                                /// Retry fetching server info
-                                _handleRefresh();
-                              },
+                              onPressed: _handleRefresh,
                               child: const Text('Tentar novamente'),
                             ),
                           ],
@@ -103,16 +116,22 @@ class _ServersState extends State<Servers> {
                             address: server.address,
                             gamemode: server.gamemode,
                             players: '${server.players}/${server.maxPlayers}',
-                            onTap: () {},
+                            onTap: () async {
+                              await _connectServer(
+                                server.address ?? '',
+                                server.hostname,
+                              );
+                            },
                           );
                         },
                       );
                     }
+
                     return const SizedBox.shrink();
                   },
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
