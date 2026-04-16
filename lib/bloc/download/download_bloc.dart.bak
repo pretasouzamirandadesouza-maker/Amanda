@@ -1,0 +1,27 @@
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+
+class DownloadBloc {
+
+  // 🔥 COLOCA SEU LINK AQUI
+  final String url = "https://SEU-SITE/cache.zip";
+
+  Future<void> downloadData() async {
+    try {
+      final dir = await getExternalStorageDirectory();
+      final file = File("${dir!.path}/cache.zip");
+
+      print("Baixando data...");
+
+      final response = await http.get(Uri.parse(url));
+
+      await file.writeAsBytes(response.bodyBytes);
+
+      print("Download concluído: ${file.path}");
+
+    } catch (e) {
+      print("Erro no download: $e");
+    }
+  }
+}
