@@ -2,7 +2,8 @@ name: Build APK
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -10,28 +11,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Baixar código
+      - name: 📥 Baixar código
         uses: actions/checkout@v4
 
-      - name: Instalar Java
+      - name: ☕ Instalar Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
 
-      - name: Instalar Flutter
+      - name: 🐦 Instalar Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.27.0'
 
-      - name: Instalar dependências
+      - name: 📦 Instalar dependências
         run: flutter pub get
 
-      - name: Build APK
-        run: flutter build apk --release
+      - name: 🔨 Build APK (DEBUG)
+        run: flutter build apk --debug
 
-      - name: Salvar APK
+      - name: 📤 Salvar APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: app-debug
+          path: build/app/outputs/flutter-apk/app-debug.apk
