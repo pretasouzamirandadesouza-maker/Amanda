@@ -9,11 +9,6 @@ import java.io.File
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "launcher"
 
-    init {
-        System.loadLibrary("GTASA")
-        System.loadLibrary("samp")
-    }
-
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
