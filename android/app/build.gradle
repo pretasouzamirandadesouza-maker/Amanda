@@ -1,7 +1,7 @@
 plugins {
-    id "com.android.application"
-    id "kotlin-android"
-    id "dev.flutter.flutter-gradle-plugin"
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'dev.flutter.flutter-gradle-plugin'
 }
 
 def localProperties = new Properties()
@@ -29,6 +29,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
+    namespace 'com.artplaygames.launcher'
     compileSdk 34
     ndkVersion flutter.ndkVersion
 
@@ -37,13 +38,13 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
     dependenciesInfo {
         includeInApk = false
         includeInBundle = true
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
     }
 
     defaultConfig {
@@ -77,11 +78,9 @@ android {
         release {
             signingConfig signingConfigs.release
             shrinkResources false
-            proguardFiles getDefaultProguardFile('proguard-android.txt')
+            minifyEnabled false
         }
     }
-
-    namespace 'com.artplaygames.launcher'
 
     lint {
         abortOnError false
